@@ -25,4 +25,4 @@ main.pyを起動するとgoogle colaboratoryのアドレスを入力するよう
 エラーが発生しなければPDFが出力されます。
 google colaboratoryから変換したtexファイルはcolaboratoryフォルダに格納されます。その中のファイルをinputでPDFとして出力されるtexファイルで読み込んでいます。
 エラーがあった場合はがんばってエラーを読んでcolaboratoryフォルダ内にある生のtexファイルをいじってください。
-エラーの原因の1つとしてtexの方で使用する記号とgoogle colaboratory上の記号のバッティングがあります。google colaboratoryの方で記号~を使っている場合は、colaboratory2latex.pyで~の文字をすべてgoogle colaboratoryの方で使用していない記号（!、?などの半角記号）に置換してください。（これにはそのうち対応）
+エラーの原因の1つとしてtexの方で使用する記号とgoogle colaboratory上の記号のバッティングがあります。google colaboratoryの方で記号 ~ を使っている場合は、colaboratory2latex.pyで ~ の文字をすべてgoogle colaboratoryの方で使用していない記号（!、?などの半角記号）に置換してください。（これにはそのうち対応）
