@@ -21,8 +21,11 @@ googleアカウントにログインするためのパラメータです。
 ### 2.起動
 settings.yamlの設定が完了したらmain.pyを起動します。ここでエラーメッセージがでた場合はsettings.yamlでgoogleアカウントの設定を行っていない可能性があります。
 main.pyを起動するとgoogle colaboratoryのアドレスを入力するように求められるので、自身がtexファイルに変換したいgoogle colaboratoryのアドレスを入力してください。
+アドレスを入力しなかった場合はサンプルとして https://colab.research.google.com/notebooks/charts.ipynb がpdf化されて出力されます。ただし、後半部分はプログラムが対応していないため図は表示されません。
 ### 3.出力
 エラーが発生しなければPDFが出力されます。
-google colaboratoryから変換したtexファイルはcolaboratoryフォルダに格納されます。その中のファイルをinputでPDFとして出力されるtexファイルで読み込んでいます。
+google colaboratoryから変換したtexファイルはcolaboratoryフォルダに格納されます。その中のファイルをinputでPDFとして出力されるtexファイル（distフォルダに格納）で読み込んでいます。
 エラーがあった場合はがんばってエラーを読んでcolaboratoryフォルダ内にある生のtexファイルをいじってください。
 エラーの原因の1つとしてtexの方で使用する記号とgoogle colaboratory上の記号のバッティングがあります。google colaboratoryの方で記号 ~ を使っている場合は、colaboratory2latex.pyで ~ の文字をすべてgoogle colaboratoryの方で使用していない記号（!、?などの半角記号）に置換してください。（これにはそのうち対応）
+## その他
+サンプルとして生成されるファイルがdistとcolaboratoryフォルダ内に入っています。
