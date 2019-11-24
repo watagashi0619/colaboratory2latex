@@ -1,0 +1,100 @@
+\usepackage[dvipdfmx]{hyperref}
+\usepackage{here}
+\usepackage{paracol}
+\usepackage{xcolor}
+\definecolor{mtk1}{HTML}{000000}
+\definecolor{mtk2}{HTML}{fffffe}
+\definecolor{mtk3}{HTML}{808080}
+\definecolor{mtk4}{HTML}{ff0000}
+\definecolor{mtk5}{HTML}{0451a5}
+\definecolor{mtk6}{HTML}{0000ff}
+\definecolor{mtk7}{HTML}{09885a}
+\definecolor{mtk8}{HTML}{008000}
+\definecolor{mtk9}{HTML}{dd0000}
+\definecolor{mtk10}{HTML}{811f3f}
+\definecolor{mtk11}{HTML}{383838}
+\definecolor{mtk12}{HTML}{267f99}
+\definecolor{mtk13}{HTML}{795e26}
+\definecolor{mtk14}{HTML}{001080}
+\definecolor{mtk15}{HTML}{cd3131}
+\definecolor{mtk16}{HTML}{863b00}
+\definecolor{mtk17}{HTML}{af00db}
+\definecolor{mtk18}{HTML}{d16969}
+\definecolor{mtk19}{HTML}{800000}
+\definecolor{mtk20}{HTML}{e00000}
+\definecolor{mtk21}{HTML}{3030c0}
+\definecolor{mtk22}{HTML}{666666}
+\definecolor{mtk23}{HTML}{778899}
+\definecolor{mtk24}{HTML}{ff00ff}
+\definecolor{mtk25}{HTML}{a31515}
+\definecolor{mtk26}{HTML}{4f76ac}
+\definecolor{mtk27}{HTML}{008080}
+\definecolor{mtk28}{HTML}{001188}
+\definecolor{mtk29}{HTML}{4864aa}
+\definecolor{inputprompt}{HTML}{303f9f}
+\definecolor{outputprompt}{HTML}{d84315}
+\newcommand{\mtkLeftBrace}[1]{\textcolor{#1}{\{}}
+\newcommand{\mtkRightBrace}[1]{\textcolor{#1}{\}}}
+\newcommand{\mtkBackslash}[1]{\textcolor{#1}{\textbackslash}}
+\newcommand{\mtkHash}[1]{\textcolor{#1}{\#}}
+\newcommand{\mtkDollar}[1]{\textcolor{#1}{\$}}
+\newcommand{\mtkPercent}[1]{\textcolor{#1}{\%}}
+\newcommand{\mtkAmpersand}[1]{\textcolor{#1}{\&}}
+\newcommand{\mtkTilde}[1]{\textcolor{#1}{\_}}
+\newcommand{\mtkCaret}[1]{\textcolor{#1}{\textasciicircum}}
+\newcommand{\inputPrompt}[1]{\textcolor{inputprompt}{In [#1]:}}
+\newcommand{\outputPrompt}[1]{\textcolor{outputprompt}{Out [#1]:}}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{newtxtext,newtxmath}
+\usepackage{bm}
+\usepackage{listings,jlisting}
+
+\lstnewenvironment{codeCell}[1][]
+    {\lstset{
+        language=python,
+        frame=single,
+        basicstyle=\ttfamily\scriptsize,
+        commentstyle=\textit,
+        classoffset=1,
+        keywordstyle=\bfseries,
+        framesep=5pt,
+        showstringspaces=false,
+        numbers=left,
+        stepnumber=1,
+        lineskip=-0.2ex,
+        numberstyle=\tiny,
+        tabsize=2,
+        breaklines = true,
+        framexleftmargin=17pt,
+        #1
+    }
+}{}
+
+\lstnewenvironment{cellExecute}[1][]
+    {\lstset{
+        basicstyle=\ttfamily\scriptsize,
+        commentstyle=\textit,
+        keywordstyle=\bfseries,
+        xleftmargin=-5pt,
+        showstringspaces=false,
+    #1
+}
+}{}
+
+\lstnewenvironment{resultCell}[1][]
+    {\lstset{
+        basicstyle=\ttfamily\scriptsize,
+        commentstyle=\textit,
+        keywordstyle=\bfseries,
+        xleftmargin=-17pt,
+        framexleftmargin=0pt,
+        showstringspaces=false,
+        breaklines = true,
+    #1
+}
+}{}
+
+\makeatletter
+\def\lst@lettertrue{\let\lst@ifletter\iffalse}
+\makeatother

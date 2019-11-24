@@ -1,0 +1,13 @@
+title:
+author: hogefuga
+date: today
+figuredirectory: ##########
+remove:
+  aux: True
+  dvi: True
+  log: True
+  out: True
+  tex: False
+google_login:
+  id: example@gmail.com
+  password: examplepassword
