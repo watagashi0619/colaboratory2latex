@@ -37,7 +37,7 @@ class Colaboratory2Latex:
         pbar.close()
         ###セルにオプションをせってい
         cell_option={}
-        if len(driver.find_element_by_class_name("sidebar").find_elements_by_class_name("comment-fragment")):
+        if len(driver.find_elements_by_class_name("sidebar")) and len(driver.find_element_by_class_name("sidebar").find_elements_by_class_name("comment-fragment")):
             option=driver.find_element_by_class_name("sidebar").find_element_by_class_name("comment-fragment").find_element_by_class_name("comment-text").text.split("\n")
             for item in option:
                 cell_option_split=item.split(";")
