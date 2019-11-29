@@ -1,0 +1,417 @@
+\section{はじめにこのパッケージの簡単な説明}
+\par 思いつくままに書いているので、まとまりがないですがお許しください。主にmarkdownの対応について書いています。
+\par 最初のセルの部分にコメントをつけてみる。例えば今回の場合、
+\begin{markdownCodeCell}[escapechar=~]
+# 27;figureoption:keepaspectratio,width=0.9\hsize
+# 32;figureoption:keepaspectratio,width=0.75\hsize
+
+\end{markdownCodeCell}\par と書いています。「\#セル番号;figureoption:オプション」とすることで、一番はじめのセルを1番として、指定番目のセルで表示されているtexのfigureの
+\begin{markdownCodeCell}[escapechar=~]
+\includegraphics[ここ！]{なんか.png}
+
+\end{markdownCodeCell}\par ここ！の部分の設定を指定できます。
+また、このようにコードをmarkdownの方に貼り付けも使えます。
+\par また、引用もできます。
+\begin{quote}
+
+texのquoteに対応させています。
+
+\end{quote}
+\par また、このpdfのもととなったgoogle colaboratoryのリンクは\href{https://colab.research.google.com/drive/1ciNys02sU0IC8EuUC5A0\_y13wfQda-7k}{これ}なのですが、このようにリンクにも対応しています。また、
+\begin{itemize}
+
+\item itemize
+\item enumerate
+
+\end{itemize}
+\par については、このような一段階までなら対応していますが、二段以上の入れ子は対応していません。
+また、\textbf{強調}、 \textit{italic（ただし英語のみ）}にも対応しています。
+
+\hrulefill
+
+\par 線も一応引けます。
+\par シャープ は1つでsection
+\subsection{2つでsubsection}
+\subsubsection{3つでsubsubsection}
+\paragraph{4つでpragraph}
+\subparagraph{5つでsubparagraphに対応します。}
+\par また、このように
+\begin{table}[H]
+
+\centering\footnotesize
+\begin{tabular}{|l|l|l|}
+\hline
+分布名 & ポアソン分布 & ガウス分布 \\ \hline\hline
+確率密度関数 & $\frac{\mu^x}{x!}e^{-\mu}$ & $\frac{1}{\sqrt{2\pi\sigma^2}}\exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)$ \\ \hline
+平均値 & $\mu$ & $\mu$ \\ \hline
+分散 & $\mu$ & $\sigma^2$ \\ \hline
+--- & --- & --- \\ \hline
+\end{tabular}
+\end{table}
+
+\par テーブルにも対応しています。pythonコード実行によって作成されたテーブルも、うまく出力されるはずです（iminuitのフィッティングによるものはしっかりと表示できました。）
+さらに、数式に対応していることもわかると思います。こういうタイプのものもいけるということで、とりあえずオイラーの等式をだしてみます。
+\[
+e^{i\pi}+1=0
+\]
+ただし、equationを使おうとすると、エラーを吐く場合があるので、うまくあとで調整してください。
+\par 以下は、実際のレポートのようなものです。雰囲気をなんとなくでも掴めるのではないでしょうか。
+
+\hrulefill
+
+\par ※このレポートはデモのために適当に作成したものです。変数名の雑さなどには目を瞑ってください。ただし、取ったデータなどは実際のものです。
+\section{概要}
+\par 以前のドミノピザのRTキャンペーンで、当たりの数や出る時間に明らかな偏りがあるように思えたため、軽く統計をとって調べてることにした。
+\section{データの取得方法}
+\par 別途用意したpythonプログラム（後述）で適当にtwitterのapi叩いてドミノピザ公式が当たり、はずれ、という画像とともにリプライを飛ばしてるツイートを取得して集計。当たりなら1、はずれなら0をtxtファイルにタイムスタンプと一緒に記録。cronによる定期実行、2分毎に直近2分間最大3200件のツイートの結果が各々のtxtファイルに記録されるようにした。
+\subsection{txtファイル作成に使用したプログラム}
+\par twitterからのテータの収集にはtweepyを使用しています。
+\begin{markdownCodeCell}[escapechar=~]
+import tweepy
+import datetime
+import re
+ 
+ 
+CK="Consumer Key"
+CS="Consumer Secret"
+AT="Access Token"
+AS="Access Token Secret"
+ 
+ 
+auth = tweepy.OAuthHandler(CK, CS)
+auth.set_access_token(AT, AS)
+api = tweepy.API(auth)
+ 
+ 
+dt_now = datetime.datetime.now()
+dt_L = datetime.datetime(*dt_now.timetuple()[:5]) - datetime.timedelta(minutes=2)
+dt_R = datetime.datetime(*dt_now.timetuple()[:5])
+filename = dt_now.strftime('\%y\%m\%d\%H\%M\%S') + '.txt'
+ 
+ 
+with open(filename,'w') as f:
+    for i in range(1,17):
+        res = api.user_timeline(screen_name="dominos_JP", count=200, page=i)
+ 
+ 
+        for tweet in res:
+            timestamp = datetime.datetime.fromtimestamp(((tweet.id >> 22)+1288834974657)/1000.0)
+            if dt_L <= timestamp:
+                if timestamp < dt_R:
+                    if re.search(r'残念',tweet.text):
+                        f.write(str(timestamp).split()[1] + ' 0' + '\n')
+                    elif re.search(r'当選',tweet.text):
+                        f.write(str(timestamp).split()[1] + ' 1' + '\n')
+            else:
+                break
+        else:
+            continue
+        break
+ 
+ 
+
+\end{markdownCodeCell}\section{2019年10月30日の集計結果}
+\par この日は \href{https://twitter.com/dominos\_JP/status/1188213772197990402?ref\_src=twsrc\%5Etfw}{このキャンペーン} の最終日でした。
+\subsection{下準備}
+\par 分析にあたり、モジュールの読み込みを行っています。
+
+\columnratio{0.09}
+\begin{paracol}{2}
+\smallskip
+\begin{cellExecute}[escapechar=~]
+~\inputPrompt{1}~
+\end{cellExecute}
+\switchcolumn
+\begin{codeCell}[escapechar=~]
+~\textcolor{mtk17}{import}~ os 
+~\textcolor{mtk17}{import}~ pandas ~\textcolor{mtk17}{as}~ pd
+~\textcolor{mtk17}{import}~ numpy ~\textcolor{mtk17}{as}~ np
+~\textcolor{mtk17}{from}~ scipy ~\textcolor{mtk17}{import}~ interpolate 
+~\textcolor{mtk17}{import}~ matplotlib.pyplot ~\textcolor{mtk17}{as}~ plt
+~\textcolor{mtk17}{from}~ matplotlib ~\textcolor{mtk17}{import}~ dates ~\textcolor{mtk17}{as}~ mdates
+~\textcolor{mtk17}{from}~ datetime ~\textcolor{mtk17}{import}~ datetime ~\textcolor{mtk17}{as}~ dt
+\end{codeCell}
+\end{paracol}
+\par google colaboratory上のディレクトリにあらかじめ全txtファイルが存在しています。
+
+\columnratio{0.09}
+\begin{paracol}{2}
+\smallskip
+\begin{cellExecute}[escapechar=~]
+~\inputPrompt{2}~
+\end{cellExecute}
+\switchcolumn
+\begin{codeCell}[escapechar=~]
+files=os.listdir(~\textcolor{mtk25}{'/content'}~)
+\end{codeCell}
+\end{paracol}
+
+\columnratio{0.09}
+\begin{paracol}{2}
+\smallskip
+\begin{cellExecute}[escapechar=~]
+~\inputPrompt{3}~
+\end{cellExecute}
+\switchcolumn
+\begin{codeCell}[escapechar=~]
+files.remove(~\textcolor{mtk25}{'sample}~~\mtkTilde{mtk25}~~\textcolor{mtk25}{data'}~)
+files.remove(~\textcolor{mtk25}{'.config'}~)
+\end{codeCell}
+\end{paracol}
+\par 適当にデータを作成します。
+
+\columnratio{0.09}
+\begin{paracol}{2}
+\smallskip
+\begin{cellExecute}[escapechar=~]
+~\inputPrompt{4}~
+\end{cellExecute}
+\switchcolumn
+\begin{codeCell}[escapechar=~]
+data=[]
+~\textcolor{mtk17}{for}~ ~\textcolor{mtk14}{file}~ ~\textcolor{mtk6}{in}~ files:
+  ~\textcolor{mtk17}{with}~ ~\textcolor{mtk13}{open}~(~\textcolor{mtk25}{'/content/'}~+~\textcolor{mtk14}{file}~, encoding=~\textcolor{mtk25}{"utf-8"}~) ~\textcolor{mtk17}{as}~ f:
+    ~\textcolor{mtk17}{for}~ line ~\textcolor{mtk6}{in}~ f:
+      line.strip(~\textcolor{mtk25}{'}~~\mtkBackslash{mtk25}~~\textcolor{mtk25}{n'}~)
+      data.append(line.split())
+\end{codeCell}
+\end{paracol}
+
+\columnratio{0.09}
+\begin{paracol}{2}
+\smallskip
+\begin{cellExecute}[escapechar=~]
+~\inputPrompt{5}~
+\end{cellExecute}
+\switchcolumn
+\begin{codeCell}[escapechar=~]
+data=[[dt.strptime(~\textcolor{mtk25}{'2019-10-29 '}~+[datum[~\textcolor{mtk7}{0}~][:~\textcolor{mtk7}{-3}~],datum[~\textcolor{mtk7}{0}~]+~\textcolor{mtk25}{'.000'}~][~\textcolor{mtk13}{len}~(datum[~\textcolor{mtk7}{0}~])<~\textcolor{mtk7}{9}~], ~\textcolor{mtk25}{'}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{Y-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{m-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{d }~~\mtkPercent{mtk25}~~\textcolor{mtk25}{H:}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{M:}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{S.}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{f'}~),~\textcolor{mtk12}{int}~(datum[~\textcolor{mtk7}{1}~])] ~\textcolor{mtk17}{for}~ datum ~\textcolor{mtk6}{in}~ data]
+data=~\textcolor{mtk13}{sorted}~(data)
+\end{codeCell}
+\end{paracol}
+
+\columnratio{0.09}
+\begin{paracol}{2}
+\smallskip
+\begin{cellExecute}[escapechar=~]
+~\inputPrompt{6}~
+\end{cellExecute}
+\switchcolumn
+\begin{codeCell}[escapechar=~]
+x=[a[~\textcolor{mtk7}{0}~] ~\textcolor{mtk17}{for}~ a ~\textcolor{mtk6}{in}~ data]
+\end{codeCell}
+\end{paracol}
+
+\columnratio{0.09}
+\begin{paracol}{2}
+\smallskip
+\begin{cellExecute}[escapechar=~]
+~\inputPrompt{7}~
+\end{cellExecute}
+\switchcolumn
+\begin{codeCell}[escapechar=~]
+y=[a[~\textcolor{mtk7}{1}~] ~\textcolor{mtk17}{for}~ a ~\textcolor{mtk6}{in}~ data]
+\end{codeCell}
+\end{paracol}
+
+\columnratio{0.09}
+\begin{paracol}{2}
+\smallskip
+\begin{cellExecute}[escapechar=~]
+~\inputPrompt{8}~
+\end{cellExecute}
+\switchcolumn
+\begin{codeCell}[escapechar=~]
+lll=~\textcolor{mtk7}{0}~
+rrr=~\textcolor{mtk7}{0}~
+~\textcolor{mtk17}{for}~ i ~\textcolor{mtk6}{in}~ ~\textcolor{mtk13}{range}~(~\textcolor{mtk13}{len}~(data)):
+  ~\textcolor{mtk17}{if}~ data[i][~\textcolor{mtk7}{0}~]>dt.strptime(~\textcolor{mtk25}{'2019-10-29 17:00'}~,~\textcolor{mtk25}{'}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{Y-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{m-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{d }~~\mtkPercent{mtk25}~~\textcolor{mtk25}{H:}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{M'}~):
+    lll=i
+    ~\textcolor{mtk17}{break}~
+\end{codeCell}
+\end{paracol}
+\par 取得した全データ数は以下のようになっています。
+
+\columnratio{0.09}
+\begin{paracol}{2}
+\smallskip
+\begin{cellExecute}[escapechar=~]
+~\inputPrompt{9}~
+\end{cellExecute}
+\switchcolumn
+\begin{codeCell}[escapechar=~]
+~\textcolor{mtk13}{len}~(data)
+\end{codeCell}
+\end{paracol}
+
+\columnratio{0.09}
+\begin{paracol}{2}
+\begin{cellExecute}[escapechar=~]
+~\outputPrompt{9}~
+\end{cellExecute}
+\switchcolumn
+\begin{resultCell}[escapechar=~]
+48259\end{resultCell}
+\end{paracol}
+\subsection{時間vs当たりはずれのプロット}
+\par 当たりを1、はずれを0に、横を時間軸としてプロットしたものです。明らかに後半は当たりが出ていません。
+
+\columnratio{0.09}
+\begin{paracol}{2}
+\smallskip
+\begin{cellExecute}[escapechar=~]
+~\inputPrompt{10}~
+\end{cellExecute}
+\switchcolumn
+\begin{codeCell}[escapechar=~]
+countwin=y_win_sum[~\textcolor{mtk7}{-1}~]-y_win_sum[lll]
+countlose=y_lose_sum[~\textcolor{mtk7}{-1}~]-y_lose_sum[lll]
+\end{codeCell}
+\end{paracol}
+
+\columnratio{0.09}
+\begin{paracol}{2}
+\smallskip
+\begin{cellExecute}[escapechar=~]
+~\inputPrompt{11}~
+\end{cellExecute}
+\switchcolumn
+\begin{codeCell}[escapechar=~]
+fig, ax = plt.subplots(figsize=(~\textcolor{mtk7}{18}~,~\textcolor{mtk7}{3}~))
+
+ax.scatter(x,y,s=~\textcolor{mtk7}{1}~)
+
+ax.xaxis.set_major_locator(mdates.HourLocator(interval=~\textcolor{mtk7}{2}~))
+ax.xaxis.set_major_formatter(mdates.DateFormatter(~\textcolor{mtk25}{"}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{Y-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{m-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{d }~~\mtkPercent{mtk25}~~\textcolor{mtk25}{H:}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{M"}~))
+ax.set_xlim([dt.strptime(~\textcolor{mtk25}{'2019-10-29 7:00'}~,~\textcolor{mtk25}{'}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{Y-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{m-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{d }~~\mtkPercent{mtk25}~~\textcolor{mtk25}{H:}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{M'}~), dt.strptime(~\textcolor{mtk25}{'2019-10-30 00:00'}~,~\textcolor{mtk25}{'}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{Y-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{m-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{d }~~\mtkPercent{mtk25}~~\textcolor{mtk25}{H:}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{M'}~)])
+
+ax.set_ylabel(~\textcolor{mtk25}{"win(1) or lose(0)"}~)
+ax.set_xlabel(~\textcolor{mtk25}{"Time"}~)
+
+~\mtkHash{mtk8}~~\textcolor{mtk8}{ax.annotate("Win:}~~\mtkPercent{mtk8}~~\textcolor{mtk8}{d" }~~\mtkPercent{mtk8}~~\textcolor{mtk8}{ countwin, xy = (dt.strptim}~~\textcolor{mtk8}{e('2019-10-29 17:30','}~~\mtkPercent{mtk8}~~\textcolor{mtk8}{Y-}~~\mtkPercent{mtk8}~~\textcolor{mtk8}{m-}~~\mtkPercent{mtk8}~~\textcolor{mtk8}{d }~~\mtkPercent{mtk8}~~\textcolor{mtk8}{H:}~~\mtkPercent{mtk8}~~\textcolor{mtk8}{M'), 1), size =}~~\textcolor{mtk8}{ 10, color='r')}~
+~\mtkHash{mtk8}~~\textcolor{mtk8}{ax.annotate("Lose:}~~\mtkPercent{mtk8}~~\textcolor{mtk8}{d" }~~\mtkPercent{mtk8}~~\textcolor{mtk8}{ countlose, xy = (dt.strpt}~~\textcolor{mtk8}{ime('2019-10-29 17:30','}~~\mtkPercent{mtk8}~~\textcolor{mtk8}{Y-}~~\mtkPercent{mtk8}~~\textcolor{mtk8}{m-}~~\mtkPercent{mtk8}~~\textcolor{mtk8}{d }~~\mtkPercent{mtk8}~~\textcolor{mtk8}{H:}~~\mtkPercent{mtk8}~~\textcolor{mtk8}{M'), 0), size}~~\textcolor{mtk8}{ = 10, color='r')}~
+
+labels = ax.get_xticklabels()
+plt.setp(labels, rotation=~\textcolor{mtk7}{45}~, fontsize=~\textcolor{mtk7}{10}~)
+
+plt.show()
+\end{codeCell}
+\end{paracol}
+
+\columnratio{0.09}
+\begin{paracol}{2}
+\begin{cellExecute}[escapechar=~]
+~\outputPrompt{11}~
+\end{cellExecute}
+\switchcolumn
+\begin{resultCell}[escapechar=~]
+\end{resultCell}
+\end{paracol}
+
+\begin{figure}[H]
+\centering
+\includegraphics[keepaspectratio,width=0.9\hsize]{/Users/_2pt/colaboratoryfigures/fig191130062652_27.png}
+\end{figure}
+\subsection{時間vs累計で推移をみる}
+
+\columnratio{0.09}
+\begin{paracol}{2}
+\smallskip
+\begin{cellExecute}[escapechar=~]
+~\inputPrompt{12}~
+\end{cellExecute}
+\switchcolumn
+\begin{codeCell}[escapechar=~]
+y_win=[a[~\textcolor{mtk7}{1}~] ~\textcolor{mtk17}{for}~ a ~\textcolor{mtk6}{in}~ data]
+y_win_sum=[~\textcolor{mtk12}{int}~(y_win.pop(~\textcolor{mtk7}{0}~))]
+~\textcolor{mtk17}{for}~ yi ~\textcolor{mtk6}{in}~ y_win:
+  y_win_sum.append(y_win_sum[~\textcolor{mtk7}{-1}~] + yi)
+\end{codeCell}
+\end{paracol}
+
+\columnratio{0.09}
+\begin{paracol}{2}
+\smallskip
+\begin{cellExecute}[escapechar=~]
+~\inputPrompt{13}~
+\end{cellExecute}
+\switchcolumn
+\begin{codeCell}[escapechar=~]
+y_lose=[~\textcolor{mtk7}{1}~^a[~\textcolor{mtk7}{1}~] ~\textcolor{mtk17}{for}~ a ~\textcolor{mtk6}{in}~ data]
+y_lose_sum=[~\textcolor{mtk12}{int}~(y_lose.pop(~\textcolor{mtk7}{0}~))]
+~\textcolor{mtk17}{for}~ yi ~\textcolor{mtk6}{in}~ y_lose:
+  y_lose_sum.append(y_lose_sum[~\textcolor{mtk7}{-1}~] + yi)
+\end{codeCell}
+\end{paracol}
+
+\columnratio{0.09}
+\begin{paracol}{2}
+\smallskip
+\begin{cellExecute}[escapechar=~]
+~\inputPrompt{14}~
+\end{cellExecute}
+\switchcolumn
+\begin{codeCell}[escapechar=~]
+y_sum=[i+~\textcolor{mtk7}{1}~ ~\textcolor{mtk17}{for}~ i ~\textcolor{mtk6}{in}~ ~\textcolor{mtk13}{range}~(~\textcolor{mtk13}{len}~(data))]
+\end{codeCell}
+\end{paracol}
+
+\columnratio{0.09}
+\begin{paracol}{2}
+\smallskip
+\begin{cellExecute}[escapechar=~]
+~\inputPrompt{15}~
+\end{cellExecute}
+\switchcolumn
+\begin{codeCell}[escapechar=~]
+fig, ax = plt.subplots(figsize=(~\textcolor{mtk7}{8}~, ~\textcolor{mtk7}{8}~))
+
+ax.plot(x,y_win_sum,~\textcolor{mtk25}{"-"}~,label=~\textcolor{mtk25}{"Win"}~,color=~\textcolor{mtk25}{"orange"}~)
+ax.plot(x,y_lose_sum,~\textcolor{mtk25}{"-"}~,label=~\textcolor{mtk25}{"Lose"}~)
+ax.plot(x,y_sum,~\textcolor{mtk25}{"-"}~,label=~\textcolor{mtk25}{"All"}~,color=~\textcolor{mtk25}{"black"}~)
+
+ax.xaxis.set_major_locator(mdates.HourLocator(interval=~\textcolor{mtk7}{2}~))
+ax.xaxis.set_major_formatter(mdates.DateFormatter(~\textcolor{mtk25}{"}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{Y-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{m-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{d }~~\mtkPercent{mtk25}~~\textcolor{mtk25}{H:}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{M"}~))
+ax.set_xlim([dt.strptime(~\textcolor{mtk25}{'2019-10-29 07:00'}~,~\textcolor{mtk25}{'}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{Y-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{m-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{d }~~\mtkPercent{mtk25}~~\textcolor{mtk25}{H:}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{M'}~), dt.strptime(~\textcolor{mtk25}{'2019-10-30 00:00'}~,~\textcolor{mtk25}{'}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{Y-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{m-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{d }~~\mtkPercent{mtk25}~~\textcolor{mtk25}{H:}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{M'}~)])
+
+ax.grid(color = ~\textcolor{mtk25}{"green"}~, alpha = ~\textcolor{mtk7}{0.5}~, linestyle = ~\textcolor{mtk25}{"--"}~, linewidth = ~\textcolor{mtk7}{1}~)
+
+ax.set_ylabel(~\textcolor{mtk25}{"Count"}~)
+ax.set_xlabel(~\textcolor{mtk25}{"Time"}~)
+
+labels = ax.get_xticklabels()
+plt.setp(labels, rotation=~\textcolor{mtk7}{45}~, fontsize=~\textcolor{mtk7}{10}~)
+
+ax.annotate(~\textcolor{mtk25}{"Win:}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{d"}~ % y_win_sum[~\textcolor{mtk7}{-1}~], xy = (dt.strptime(~\textcolor{mtk25}{'2019-10-30 00:00'}~,~\textcolor{mtk25}{'}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{Y-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{m-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{d }~~\mtkPercent{mtk25}~~\textcolor{mtk25}{H:}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{M'}~), y_win_sum[~\textcolor{mtk7}{-1}~]), size = ~\textcolor{mtk7}{10}~, color=~\textcolor{mtk25}{'r'}~)
+ax.annotate(~\textcolor{mtk25}{"Lose:}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{d"}~ % y_lose_sum[~\textcolor{mtk7}{-1}~], xy = (dt.strptime(~\textcolor{mtk25}{'2019-10-30 00:00'}~,~\textcolor{mtk25}{'}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{Y-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{m-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{d }~~\mtkPercent{mtk25}~~\textcolor{mtk25}{H:}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{M'}~), y_lose_sum[~\textcolor{mtk7}{-1}~]), size = ~\textcolor{mtk7}{10}~, color=~\textcolor{mtk25}{'r'}~)
+ax.annotate(~\textcolor{mtk25}{"All:}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{d"}~ % y_sum[~\textcolor{mtk7}{-1}~], xy = (dt.strptime(~\textcolor{mtk25}{'2019-10-30 00:00'}~,~\textcolor{mtk25}{'}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{Y-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{m-}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{d }~~\mtkPercent{mtk25}~~\textcolor{mtk25}{H:}~~\mtkPercent{mtk25}~~\textcolor{mtk25}{M'}~), y_sum[~\textcolor{mtk7}{-1}~]), size = ~\textcolor{mtk7}{10}~, color=~\textcolor{mtk25}{'r'}~)
+
+
+ax.legend()
+plt.show()
+\end{codeCell}
+\end{paracol}
+
+\columnratio{0.09}
+\begin{paracol}{2}
+\begin{cellExecute}[escapechar=~]
+~\outputPrompt{15}~
+\end{cellExecute}
+\switchcolumn
+\begin{resultCell}[escapechar=~]
+\end{resultCell}
+\end{paracol}
+
+\begin{figure}[H]
+\centering
+\includegraphics[keepaspectratio,width=0.75\hsize]{/Users/_2pt/colaboratoryfigures/fig191130062652_32.png}
+\end{figure}
+\par グラフを見てみると
+\begin{itemize}
+
+\item はじめのうちは当たり：外れ＝2：1くらいで出ている
+\item 中盤から当たりが外れに比べてだいぶ出やすくなった
+\item \textbf{終盤は出せる当たりが尽きたためか？はずれしかでなくなっている}
+
+\end{itemize}
+\par ことがわかります。\textbf{なんだか露骨でおもしろい！}
