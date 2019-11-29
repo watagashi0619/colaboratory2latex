@@ -2,7 +2,7 @@
 ## 概要
 Google Colaboratoryで作成したipynbファイルをLaTeX形式のファイルにしたのちにPDFにするプログラムです。
 ## 使い方
-このプログラムにはchromedriverが使用されています。google chromeのダウンロードと https://chromedriver.chromium.org/downloads から、自身のパソコンにインストールされているgoogle chromeに対応するバージョンのchrome driverをパスが通っている場所に配置する必要があります。
+このプログラムにはchromedriverが使用されています。google chromeのダウンロードがまず必要なのと、 https://chromedriver.chromium.org/downloads から、自身のパソコンにインストールされているgoogle chromeに対応するバージョンのchrome driverを、パスが通っている場所に配置する必要があります。
 ### 1.settings.yamlの設定
 まずはじめにsettings/settings.yamlの設定を行ってください。
 google_loginのidには自身のgmailアドレスを、passwordのところには自身のパスワードに書き換えてください。
