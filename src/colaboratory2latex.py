@@ -113,6 +113,8 @@ class Colaboratory2Latex:
                     txt+=char
                 elif char=="_" and not is_equation:
                     txt+="\_"
+                elif char=="#" and not is_equation:
+                    txt+="\#"
                 else:
                     txt+=char
             return txt
@@ -158,7 +160,7 @@ class Colaboratory2Latex:
         for item in soup.find_all("blockquote"):
             item.replace_with("\\begin{quote}\n%s\n\\end{quote}" % tidying(item.text))
         for item in soup.find_all("hr"):
-            item.replace_with("\\hrulefill\\\\\n")
+            item.replace_with("\n\\hrulefill\n")
         for item in soup.find_all("p"):
             item=item.replace_with("\\par %s" % tidying(item.text))
         for item in soup.find_all("code"):
@@ -221,7 +223,7 @@ class Colaboratory2Latex:
         txt=r"%s" % txt
         txt=txt.encode("utf-8")
         #txt=txt.replace(b"\x09",b"")
-        txt=txt.replace(b"\xc2\xa0",b"")
+        txt=txt.replace(b"\xc2\xa0",b"\x20")
         txt=txt.replace(b"\xe2\x80\x82",b"")
         txt=txt.replace(b"\xe2\x80\x83",b"")
         txt=txt.replace(b"\xe2\x80\x84",b"")

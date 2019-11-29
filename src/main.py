@@ -27,7 +27,7 @@ while True:
 
 if url=="":
     print("Show sample")
-    url="https://colab.research.google.com/notebooks/charts.ipynb"
+    url="https://colab.research.google.com/drive/1ciNys02sU0IC8EuUC5A0_y13wfQda-7k"
 
 inner_filename_local= "../colaboratory/colaboratory%s" % dt_now
 inner_filename="%s/colaboratory/colaboratory%s.tex" % (superiorpath,dt_now)
