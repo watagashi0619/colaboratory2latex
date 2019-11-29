@@ -1,11 +1,13 @@
 #~/usr/bin/env python
 # -*- coding: utf-8 -*-
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
+from xml.sax.saxutils import unescape
 from bs4 import BeautifulSoup
 import base64
 import filepath
@@ -17,7 +19,11 @@ import urllib.parse
 class Colaboratory2Latex:
 
     def __init__(self,url,directory,google_login_id_pw,showMarkdownCell=True,showCodeCell=True,showCodeCellInput=True,showCodeCellOutput=True):
-        driver = webdriver.Chrome()
+        options = Options()
+        options.add_argument('--headless')
+        options.add_argument("--disable-gpu")
+        #options.add_argument("--window-size=1024x768")
+        driver = webdriver.Chrome(options=options)
         self.url=urllib.parse.quote(url,safe='')
         login_url="https://accounts.google.com/signin/v2/identifier?hl=ja&passive=true&continue=%s&flowName=GlifWebSignIn&flowEntry=ServiceLogin" % self.url
         driver.get(login_url)
@@ -25,9 +31,9 @@ class Colaboratory2Latex:
         WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.CLASS_NAME, 'notebook-container')))
         self.title = str(driver.find_element_by_id('doc-name').get_attribute("value"))
         print("open:%s" % self.title)
-        ###読み込んでおく
+        ###先にページ全体読み込んでおく
         cells=driver.find_elements_by_class_name("cell")
-        print("Collecting Cell Data...")
+        print("Now Loading...")
         pbar=tqdm(total=len(cells))
         for cell in cells:
             actions = ActionChains(driver)
@@ -35,7 +41,7 @@ class Colaboratory2Latex:
             actions.perform()
             pbar.update(1)
         pbar.close()
-        ###セルにオプションをせってい
+        ###cellにoptionをsidebarのコメントから設定する
         cell_option={}
         if len(driver.find_elements_by_class_name("sidebar")) and len(driver.find_element_by_class_name("sidebar").find_elements_by_class_name("comment-fragment")):
             option=driver.find_element_by_class_name("sidebar").find_element_by_class_name("comment-fragment").find_element_by_class_name("comment-text").text.split("\n")
@@ -43,29 +49,29 @@ class Colaboratory2Latex:
                 cell_option_split=item.split(";")
                 if cell_option_split[0][0]=="#":
                     cell_option.setdefault(int(cell_option_split[0][1:]),cell_option_split[1])
-        ###以下でtexにする
-        print("Writing Data...")
+        ###以下でtex形式にする
+        print("Converting...")
         with open(directory,"w") as self.tex:
             self.cell_counter=0
             self.codecell_counter=0
             pbar=tqdm(total=len(cells))
             for cell in cells:
                 self.cell_counter+=1
-                actions = ActionChains(driver)
-                actions.move_to_element(cell)
-                actions.perform()
+                #actions = ActionChains(driver)
+                #actions.move_to_element(cell)
+                #actions.perform()
                 if self.cell_counter in cell_option.keys():
                     if cell_option[self.cell_counter]=="display:none":
                         #self.codecell_counter+=1
                         pbar.update(1)
                         continue
                 if showMarkdownCell and len(cell.find_elements_by_class_name("markdown")):
-                    self.getMarkdown(cell)
+                    self.get_markdown(cell)
                 if showCodeCell and len(cell.find_elements_by_class_name("codecell-input-output")):
                     self.codecell=cell.find_element_by_class_name("codecell-input-output")
                     self.codecell_counter+=1
                     if showCodeCellInput:
-                        self.getCodecellInput(driver)
+                        self.get_codecell_input(driver)
                     if showCodeCellOutput:
                         self.iframe=self.codecell.find_elements_by_xpath(".//div[@class='outputview']/iframe")
                         if len(self.iframe):
@@ -74,25 +80,43 @@ class Colaboratory2Latex:
                                 if "figureoption:" in cell_option[self.cell_counter]:
                                     self.includegraphics_option=cell_option[self.cell_counter].split(":")[1]
                             driver.switch_to.frame(self.iframe[0])
-                            self.getCodecellOutput(driver)
+                            self.get_codecell_output(driver)
                             driver.switch_to.parent_frame()
                 pbar.update(1)
             pbar.close()
         driver.quit()
 
     def login_google(self,driver,google_login_id_pw):
+        print("Login Your Google Account...")
         login_id,login_pw = google_login_id_pw
-        login_id_xpath = '//*[@id="identifierNext"]'
+        login_id_xpath = "//*[@id='Email']"
         WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.XPATH, login_id_xpath)))
-        driver.find_element_by_name("identifier").send_keys(login_id)
-        driver.find_element_by_xpath(login_id_xpath).click()
-        login_pw_xpath = '//*[@id="passwordNext"]'
-        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.XPATH, login_pw_xpath)))
-        driver.find_element_by_name("password").send_keys(login_pw)
+        driver.find_element_by_xpath("//*[@id='Email']").send_keys(login_id + Keys.ENTER)
         time.sleep(1)
-        driver.find_element_by_xpath(login_pw_xpath).click()
+        login_pw_xpath = "//*[@id='Passwd']"
+        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.XPATH, login_pw_xpath)))
+        driver.find_element_by_xpath("//*[@id='Passwd']").send_keys(login_pw + Keys.ENTER)
+        print("Success!")
 
-    def getMarkdown(self,cell):
+    def get_markdown(self,cell):
+
+        def tidying(text):
+            txt=""
+            charstore=["",""]
+            is_equation=False
+            for char in text:
+                charstore.append(char)
+                del charstore[0]
+                if char=="$":
+                    is_equation=not is_equation
+                if charstore==["\\","_"]:
+                    txt+=char
+                elif char=="_" and not is_equation:
+                    txt+="\_"
+                else:
+                    txt+=char
+            return txt
+            
         markdown=cell.find_element_by_class_name("markdown")
         soup=BeautifulSoup(markdown.get_attribute("innerHTML"),"lxml")
         if len(soup.find_all("svg")):
@@ -110,33 +134,39 @@ class Colaboratory2Latex:
             else:
                 item.replace_with("$%s$" % item.text)
         for item in soup.find_all("em"):
-            item.replace_with("\\textit{%s}" % item.text)
+            item.replace_with("\\textit{%s}" % tidying(item.text))
         for item in soup.find_all("strong"):
-            item.replace_with("\\textbf{%s}" % item.text)
+            item.replace_with("\\textbf{%s}" % tidying(item.text))
         for item in soup.find_all("a"):
-            item.replace_with("\\href{%s}{%s}" % (item["href"],item.text))
+            item.replace_with("\\href{%s}{%s}" % (item["href"],tidying(item.text)))
         for item in soup.find_all("h1"):
-            item.replace_with("\\section{%s}" % item.text)
+            item.replace_with("\\section{%s}" % tidying(item.text))
         for item in soup.find_all("h2"):
-            item.replace_with("\\subsection{%s}" % item.text)
+            item.replace_with("\\subsection{%s}" % tidying(item.text))
         for item in soup.find_all("h3"):
-            item.replace_with("\\subsubsection{%s}" % item.text)
+            item.replace_with("\\subsubsection{%s}" % tidying(item.text))
         for item in soup.find_all("h4"):
-            item.replace_with("\\paragraph{%s}" % item.text)
+            item.replace_with("\\paragraph{%s}" % tidying(item.text))
         for item in soup.find_all("h5"):
-            item.replace_with("\\subparagraph{%s}" % item.text)
+            item.replace_with("\\subparagraph{%s}" % tidying(item.text))
         for item in soup.find_all("li"):
-            item.replace_with("\item %s" % item.text)
+            item.replace_with("\item %s" % tidying(item.text))
         for item in soup.find_all("ul"):
             item.replace_with("\\begin{itemize}\n%s\n\\end{itemize}" % item.text)
         for item in soup.find_all("ol"):
             item.replace_with("\\begin{enumerate}\n%s\n\\end{enumerate}" % item.text)
         for item in soup.find_all("blockquote"):
-            item.replace_with("\\begin{quote}\n%s\n\\end{quote}" % item.text)
+            item.replace_with("\\begin{quote}\n%s\n\\end{quote}" % tidying(item.text))
         for item in soup.find_all("hr"):
-            item.replace_with("\\hrulefill")
+            item.replace_with("\\hrulefill\\\\\n")
         for item in soup.find_all("p"):
-            item=item.replace_with("%s\\\\" % item.text)
+            item=item.replace_with("\\par %s" % tidying(item.text))
+        for item in soup.find_all("code"):
+            markdown_code_txt=""
+            item.parent.unwrap()
+            for col in item.find_all("span",class_=""):
+                markdown_code_txt+="%s\n" % col.text
+            item.replace_with("\\begin{markdownCodeCell}[escapechar=~]\n%s\n\\end{markdownCodeCell}" % markdown_code_txt)
         for item in soup.find_all("div"):
             item.unwrap()
         for item in soup.find_all("span"):
@@ -147,7 +177,7 @@ class Colaboratory2Latex:
             for row in table.find_all("tr"):
                 columnlen=max(len(row.find_all(["th","td"])),columnlen)
             tabletex+=textwrap.dedent("""
-                \\centering\\scriptsize
+                \\centering\\footnotesize
                 \\begin{tabular}{%s}
                 \\hline\n""" % ("|l"*columnlen+"|"))
             thead_flag=True
@@ -155,14 +185,7 @@ class Colaboratory2Latex:
                 tr_items=len(row.find_all(["th","td"]))
                 item_counter=0
                 for item in row.find_all(["th","td"]):
-                    txt=""
-                    for char in item.text:
-                        if char == "\\":
-                            txt+="\\\\"
-                        elif char in ["{","}","#","$","%","&","_","^"]:
-                            txt+="\%s" % char
-                        else:
-                            txt+=char
+                    txt=item.text
                     if item.has_attr("align") and item["align"] in ["left","center","right"]:
                         align=item["align"][0]
                     else:
@@ -192,8 +215,7 @@ class Colaboratory2Latex:
         soup.find("html").unwrap()
         soup.find("body").unwrap()
         txt=str(soup)
-        txt=txt.replace("&amp;","&")
-        txt=txt.replace("_","\_")
+        txt=unescape(txt)
         txt=txt.replace("%","\%")
         ###特殊な空白文字を消す
         txt=r"%s" % txt
@@ -213,11 +235,10 @@ class Colaboratory2Latex:
         txt=txt.replace(b"\xe3\x80\x80",b"")
         txt=txt.replace(b"\xef\xbb\xbf",b"")
         txt=txt.replace(b"\xe2\x88\xbc",b"$\\succ$")#sampleのためだけに追加
-        #U+2588 \xe2\x96\x88 への対応
         txt=txt.decode("utf-8")
         self.tex.write(txt)
     
-    def getCodecellInput(self,driver):
+    def get_codecell_input(self,driver):
         self.tex.write(textwrap.dedent("""
                 \\columnratio{0.09}
                 \\begin{paracol}{2}
@@ -274,7 +295,7 @@ class Colaboratory2Latex:
             \\end{paracol}
             """))
         
-    def getCodecellOutput(self,driver):
+    def get_codecell_output(self,driver):
         self.tex.write(textwrap.dedent("""
             \\columnratio{0.09}
             \\begin{paracol}{2}
@@ -289,8 +310,12 @@ class Colaboratory2Latex:
         if len(driver.find_elements_by_id("output-body")) and len(driver.find_element_by_id("output-body").find_elements_by_class_name("stream")):
             streams=driver.find_element_by_id("output-body").find_elements_by_class_name("stream")
             for stream in streams:
-                self.tex.write(stream.text)
-            
+                stream=stream.text
+                stream=stream.encode("utf-8")
+                stream=stream.replace(b"\xe2\x96\x88",b"\x23")#U+2588 の代用
+                stream=stream.decode("utf-8")
+                self.tex.write(stream)
+
         ###pyout
         if len(driver.find_elements_by_class_name("pyout"))>0:
             pyout=driver.find_element_by_class_name("pyout")
@@ -313,7 +338,7 @@ class Colaboratory2Latex:
                 for row in table.find_all("tr"):
                     columnlen=max(len(row.find_all(["th","td"])),columnlen)
                 self.tex.write(textwrap.dedent("""
-                    \\centering\\scriptsize
+                    \\centering\\footnotesize
                     \\begin{tabular}{%s}
                     \\hline\n""" % ("|l"*columnlen+"|")))
                 thead_flag=True
@@ -354,7 +379,7 @@ class Colaboratory2Latex:
                     \\end{table}
                     """))
 
-        ###get graphs
+        ###図の保存と出力
         if len(driver.find_elements_by_xpath("//img")):
             srclink=driver.find_element_by_xpath("//img").get_attribute("src").split(",")[1]
             img_binary=srclink.replace("%0A","")

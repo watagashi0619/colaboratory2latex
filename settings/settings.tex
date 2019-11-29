@@ -54,7 +54,7 @@
     {\lstset{
         language=python,
         frame=single,
-        basicstyle=\ttfamily\scriptsize,
+        basicstyle=\ttfamily\footnotesize,
         commentstyle=\textit,
         classoffset=1,
         keywordstyle=\bfseries,
@@ -73,7 +73,7 @@
 
 \lstnewenvironment{cellExecute}[1][]
     {\lstset{
-        basicstyle=\ttfamily\scriptsize,
+        basicstyle=\ttfamily\footnotesize,
         commentstyle=\textit,
         keywordstyle=\bfseries,
         xleftmargin=-5pt,
@@ -84,7 +84,7 @@
 
 \lstnewenvironment{resultCell}[1][]
     {\lstset{
-        basicstyle=\ttfamily\scriptsize,
+        basicstyle=\ttfamily\footnotesize,
         commentstyle=\textit,
         keywordstyle=\bfseries,
         xleftmargin=-17pt,
@@ -93,6 +93,28 @@
         breaklines = true,
     #1
 }
+}{}
+
+\lstnewenvironment{markdownCodeCell}[1][]
+    {\lstset{
+        language=python,
+        frame=single,
+        basicstyle=\ttfamily\footnotesize,
+        commentstyle=\textit,
+        classoffset=1,
+        keywordstyle=\bfseries,
+        framesep=5pt,
+        showstringspaces=false,
+        numbers=left,
+        stepnumber=1,
+        lineskip=-0.2ex,
+        numberstyle=\tiny,
+        tabsize=2,
+        breaklines = true,
+        framexleftmargin=17pt,
+        xleftmargin=17pt,
+        #1
+    }
 }{}
 
 \makeatletter
