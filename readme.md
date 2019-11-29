@@ -18,6 +18,7 @@ texファイルのtitle,author,dateにあたる設定です。なにも書かな
 googleアカウントにログインするためのパラメータです。
     - id:gmailのアドレス
     - password:パスワード
+
 となります。
 ### 2.起動
 settings.yamlの設定が完了したらsrc/main.pyを起動します。
