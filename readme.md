@@ -23,7 +23,7 @@ googleアカウントにログインするためのパラメータです。
 ### 2.起動
 - settings.yamlの設定が完了したらsrc/main.pyを起動します。
 - main.pyを起動するとgoogle colaboratoryのアドレスを入力するように求められるので、自身がtexファイルに変換したいgoogle colaboratoryのアドレスを入力してください。
-- アドレスを入力しなかった場合はサンプルとして https://colab.research.google.com/notebooks/charts.ipynb がpdf化されて出力されます。
+- アドレスを入力しなかった場合はサンプルとして https://colab.research.google.com/drive/1ciNys02sU0IC8EuUC5A0_y13wfQda-7k がpdf化されて出力されます。
 ### 3.出力
 - エラーが発生しなければPDFが出力されます。
 - google colaboratoryから変換したtexファイルはcolaboratoryフォルダに格納されます。その中のファイルをinputでPDFとして出力されるtexファイル（distフォルダに格納）で読み込んでいます。
