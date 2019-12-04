@@ -1,6 +1,7 @@
 # Colaboratory2LaTeX
 ## 概要
-Google Colaboratoryで作成したipynbファイルをLaTeX形式のファイルにしたのちにPDFにするプログラムです。
+Google Colaboratoryで作成したipynbファイルをLaTeX形式のファイルにしたのちにPDFにするプログラムです。  
+例えば<a href="https://colab.research.google.com/drive/1ciNys02sU0IC8EuUC5A0_y13wfQda-7k">こんなの</a>が <a href="https://github.com/watagashi0619/colaboratory2latex/blob/master/dist/sample:ドミノピザの当選数の推移の集計.pdf">こんな感じ</a>になります。（もう少しきれいなサンプルを後日作成予定です。）
 ## 使い方
 このプログラムにはchromedriverが使用されています。google chromeのダウンロードがまず必要なのと、 https://chromedriver.chromium.org/downloads から、自身のパソコンにインストールされているgoogle chromeに対応するバージョンのchrome driverを、パスが通っている場所に配置する必要があります。
 ### 1.settings.yamlの設定
